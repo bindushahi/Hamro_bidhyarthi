@@ -982,5 +982,21 @@
     "mood": 1,
     "energy": "medium",
     "note": ""
+  },
+  {
+    "id": "c-2818adad",
+    "student_id": "s2",
+    "date": "2026-03-28",
+    "mood": 3,
+    "energy": "high",
+    "note": ""
+  },
+  {
+    "id": "c-d5d8c868",
+    "student_id": "s1",
+    "date": "2026-03-28",
+    "mood": 1,
+    "energy": "low",
+    "note": ""
   }
 ]
