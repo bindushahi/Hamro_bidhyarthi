@@ -1,89 +1,128 @@
 """
-Thin JSON-file data layer. Every read/write goes through here,
-so swapping to a real DB later is just replacing these functions.
+Data access layer backed by SQLite via SQLAlchemy.
+All functions return plain dicts so patterns.py and main.py stay unchanged.
 """
 
 import json
-from pathlib import Path
-from datetime import date
-
-DATA_DIR = Path(__file__).parent / "data"
+from sqlalchemy.orm import Session
+from database import SessionLocal, Student, CheckIn, Observation, Intervention, Buddy
 
 
-def _read(filename: str) -> list:
-    with open(DATA_DIR / filename, encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _write(filename: str, data: list):
-    with open(DATA_DIR / filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+def _db() -> Session:
+    return SessionLocal()
 
 
 def get_students() -> list[dict]:
-    return _read("students.json")
+    db = _db()
+    try:
+        rows = db.query(Student).all()
+        return [r.to_dict() for r in rows]
+    finally:
+        db.close()
 
 
 def get_student(student_id: str) -> dict | None:
-    for s in get_students():
-        if s["id"] == student_id:
-            return s
-    return None
+    db = _db()
+    try:
+        row = db.query(Student).filter(Student.id == student_id).first()
+        return row.to_dict() if row else None
+    finally:
+        db.close()
+
+
+def get_students_by_class(class_name: str) -> list[dict]:
+    db = _db()
+    try:
+        rows = db.query(Student).filter(Student.class_name == class_name).all()
+        return [r.to_dict() for r in rows]
+    finally:
+        db.close()
 
 
 def get_all_checkins() -> list[dict]:
-    return _read("checkins.json")
+    db = _db()
+    try:
+        rows = db.query(CheckIn).all()
+        return [r.to_dict() for r in rows]
+    finally:
+        db.close()
 
 
 def get_checkins(student_id: str, days: int | None = None) -> list[dict]:
-    all_checkins = _read("checkins.json")
-    filtered = [c for c in all_checkins if c["student_id"] == student_id]
-    filtered.sort(key=lambda c: c["date"])
-
-    if days:
-        filtered = filtered[-days:]
-
-    return filtered
+    db = _db()
+    try:
+        q = db.query(CheckIn).filter(CheckIn.student_id == student_id).order_by(CheckIn.date)
+        rows = q.all()
+        result = [r.to_dict() for r in rows]
+        if days:
+            result = result[-days:]
+        return result
+    finally:
+        db.close()
 
 
 def add_checkin(checkin: dict):
-    data = _read("checkins.json")
-    data.append(checkin)
-    _write("checkins.json", data)
+    db = _db()
+    try:
+        db.add(CheckIn(**checkin))
+        db.commit()
+    finally:
+        db.close()
 
 
 def get_observations(student_id: str | None = None) -> list[dict]:
-    data = _read("observations.json")
-    if student_id:
-        data = [o for o in data if o["student_id"] == student_id]
-    data.sort(key=lambda o: o["date"], reverse=True)
-    return data
+    db = _db()
+    try:
+        q = db.query(Observation)
+        if student_id:
+            q = q.filter(Observation.student_id == student_id)
+        q = q.order_by(Observation.date.desc())
+        return [r.to_dict() for r in q.all()]
+    finally:
+        db.close()
 
 
 def add_observation(obs: dict):
-    data = _read("observations.json")
-    data.append(obs)
-    _write("observations.json", data)
+    db = _db()
+    try:
+        if isinstance(obs.get("tags"), list):
+            obs["tags"] = json.dumps(obs["tags"])
+        db.add(Observation(**obs))
+        db.commit()
+    finally:
+        db.close()
 
 
 def get_interventions(student_id: str | None = None) -> list[dict]:
-    data = _read("interventions.json")
-    if student_id:
-        data = [i for i in data if i["student_id"] == student_id]
-    data.sort(key=lambda i: i["date"], reverse=True)
-    return data
+    db = _db()
+    try:
+        q = db.query(Intervention)
+        if student_id:
+            q = q.filter(Intervention.student_id == student_id)
+        q = q.order_by(Intervention.date.desc())
+        return [r.to_dict() for r in q.all()]
+    finally:
+        db.close()
 
 
 def add_intervention(intervention: dict):
-    data = _read("interventions.json")
-    data.append(intervention)
-    _write("interventions.json", data)
+    db = _db()
+    try:
+        db.add(Intervention(**intervention))
+        db.commit()
+    finally:
+        db.close()
 
 
 def get_buddy_for_student(student_id: str) -> dict | None:
-    for b in _read("buddies.json"):
-        if b["student_id"] == student_id:
-            buddy = get_student(b["buddy_id"])
-            if buddy:
-                return {"buddy": buddy, "assigned_date": b["assigned_date"]}
-    return None
+    db = _db()
+    try:
+        b = db.query(Buddy).filter(Buddy.student_id == student_id).first()
+        if not b:
+            return None
+        buddy_row = db.query(Student).filter(Student.id == b.buddy_id).first()
+        if not buddy_row:
+            return None
+        return {"buddy": buddy_row.to_dict(), "assigned_date": b.assigned_date}
+    finally:
+        db.close()

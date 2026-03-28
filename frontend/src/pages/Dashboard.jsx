@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStudents, getWatchlist } from "../api";
+import { getStudents, getWatchlist, getSchoolAnalytics, getClassAnalytics } from "../api";
+import { useAuth } from "../contexts/AuthContext";
 import {
   AlertTriangle,
   ChevronRight,
@@ -8,6 +9,7 @@ import {
   Users,
   TrendingDown,
   ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 
 const RISK_STYLE = {
@@ -41,21 +43,49 @@ function StatCard({ label, value, icon: Icon }) {
   );
 }
 
+function RiskBar({ distribution, total }) {
+  if (!total) return null;
+  const levels = ["low", "moderate", "high", "crisis"];
+  const colors = { low: "bg-emerald-400", moderate: "bg-amber-400", high: "bg-red-400", crisis: "bg-red-600" };
+
+  return (
+    <div className="flex rounded-full overflow-hidden h-2">
+      {levels.map((l) => {
+        const pct = ((distribution[l] || 0) / total) * 100;
+        if (!pct) return null;
+        return <div key={l} className={`${colors[l]}`} style={{ width: `${pct}%` }} />;
+      })}
+    </div>
+  );
+}
+
 export default function Dashboard() {
+  const { user } = useAuth();
+  const role = user?.role;
+  const isCounselor = role === "counselor" || role === "admin";
+
   const [students, setStudents] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [schoolStats, setSchoolStats] = useState(null);
+  const [classBreakdown, setClassBreakdown] = useState([]);
 
   useEffect(() => {
-    Promise.all([getStudents(), getWatchlist()])
-      .then(([s, w]) => {
+    const promises = [getStudents(), getWatchlist()];
+    if (isCounselor) {
+      promises.push(getSchoolAnalytics(), getClassAnalytics());
+    }
+    Promise.all(promises)
+      .then(([s, w, school, classes]) => {
         setStudents(s);
         setWatchlist(w);
+        if (school) setSchoolStats(school);
+        if (classes) setClassBreakdown(classes);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [isCounselor]);
 
   const filtered = students.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase())
@@ -80,33 +110,69 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Overview of student wellbeing
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">
+          {role === "teacher" ? "My Class" : "Dashboard"}
+        </h1>
+        <p className="text-sm text-gray-400 mt-0.5">
+          {role === "teacher"
+            ? "Students assigned to your class"
+            : "School-wide student wellbeing overview"}
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Students" value={stats.total} icon={Users} />
-        <StatCard
-          label="Needs Attention"
-          value={stats.flagged}
-          icon={AlertTriangle}
-        />
-        <StatCard
-          label="High Risk"
-          value={stats.highRisk}
-          icon={TrendingDown}
-        />
+        <StatCard label="Needs Attention" value={stats.flagged} icon={AlertTriangle} />
+        <StatCard label="High Risk" value={stats.highRisk} icon={TrendingDown} />
         <StatCard label="Healthy" value={stats.healthy} icon={ShieldCheck} />
       </div>
 
-      {watchlist.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-sm font-medium text-gray-900 mb-3">
-            Watchlist
+      {isCounselor && classBreakdown.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+            <BarChart3 size={14} className="text-gray-400" />
+            Class Comparison
           </h2>
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Class</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Students</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Avg Mood</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Check-ins</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400 w-48">Risk Distribution</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {classBreakdown.map((c) => (
+                  <tr key={c.class} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900">{c.class}</td>
+                    <td className="px-4 py-3 text-gray-500">{c.student_count}</td>
+                    <td className="px-4 py-3 text-gray-700">{c.avg_mood || "—"}</td>
+                    <td className="px-4 py-3 text-gray-500">{c.checkin_count}</td>
+                    <td className="px-4 py-3">
+                      <RiskBar distribution={c.risk_distribution} total={c.student_count} />
+                      <div className="flex gap-3 mt-1.5 text-[10px] text-gray-400">
+                        {Object.entries(c.risk_distribution).map(([level, count]) =>
+                          count > 0 ? (
+                            <span key={level} className="capitalize">{count} {level}</span>
+                          ) : null
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {watchlist.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-medium text-gray-900 mb-3">Watchlist</h2>
           <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
             {watchlist.map((s) => (
               <Link
@@ -119,9 +185,7 @@ export default function Dashboard() {
                     {s.name.split(" ").map((n) => n[0]).join("")}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {s.name}
-                    </p>
+                    <p className="text-sm font-medium text-gray-900">{s.name}</p>
                     <p className="text-xs text-gray-400">
                       Class {s.class}
                       {s.risk?.concerns?.[0] && ` — ${s.risk.concerns[0]}`}
@@ -159,30 +223,17 @@ export default function Dashboard() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">
-                  Name
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">
-                  Class
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">
-                  Last Mood
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">
-                  Risk
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">
-                  Last Check-in
-                </th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Name</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Class</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Last Mood</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Risk</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Last Check-in</th>
                 <th></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map((s) => (
-                <tr
-                  key={s.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
+                <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <Link
                       to={`/students/${s.id}`}
@@ -192,15 +243,9 @@ export default function Dashboard() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-gray-500">{s.class}</td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {s.last_mood ?? "—"} / 5
-                  </td>
-                  <td className="px-4 py-3">
-                    <RiskBadge level={s.risk_level} />
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">
-                    {s.last_checkin_date || "Never"}
-                  </td>
+                  <td className="px-4 py-3 text-gray-700">{s.last_mood ?? "—"} / 5</td>
+                  <td className="px-4 py-3"><RiskBadge level={s.risk_level} /></td>
+                  <td className="px-4 py-3 text-gray-400">{s.last_checkin_date || "Never"}</td>
                   <td className="px-4 py-3 text-right">
                     <Link to={`/students/${s.id}`}>
                       <ChevronRight size={16} className="text-gray-300" />

@@ -2,6 +2,37 @@ from pydantic import BaseModel
 from typing import Literal
 
 
+class RegisterRequest(BaseModel):
+    email: str
+    full_name: str
+    phone_number: str
+    password: str
+    role: Literal["teacher", "counselor"]
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class VerifyOtpRequest(BaseModel):
+    user_id: str
+    otp: str
+
+
+class ElevateOtpRequest(BaseModel):
+    otp: str
+
+
+class ApproveRequest(BaseModel):
+    school_id: str = "school-1"
+
+
+class AssignClassRequest(BaseModel):
+    user_id: str
+    class_id: str
+
+
 class CheckinRequest(BaseModel):
     student_id: str
     mood: int
@@ -22,23 +53,3 @@ class InterventionRequest(BaseModel):
     type: str
     note: str
     status: str = "in_progress"
-
-
-class RiskAssessment(BaseModel):
-    risk_level: Literal["low", "moderate", "high", "crisis"]
-    confidence: float
-    primary_concerns: list[str]
-    signal_summary: str
-    signal_summary_np: str = ""
-    recommended_action: str
-    escalation_needed: bool
-    reasoning: str
-
-
-class NoteAnalysis(BaseModel):
-    distress_detected: bool
-    severity: Literal["none", "mild", "moderate", "severe", "crisis"]
-    themes: list[str]
-    key_phrases: list[str]
-    english_translation: str
-    requires_immediate_attention: bool
