@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStudent, getBuddy, getCreativeTask } from "../api";
+import { useLanguage } from "../i18n";
 import { Lightbulb, RefreshCw, Sparkles, Users, Package } from "lucide-react";
 
 const CATEGORY_STYLE = {
@@ -30,6 +31,7 @@ export default function CreativeTask({ studentId }) {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingTask, setLoadingTask] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!studentId) return;
@@ -60,7 +62,7 @@ export default function CreativeTask({ studentId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm text-gray-400">{t("loading")}</p>
       </div>
     );
   }
@@ -70,9 +72,9 @@ export default function CreativeTask({ studentId }) {
   return (
     <div className="max-w-xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Creative Task</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t("creative_title")}</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          A fun activity for you and your buddy to do together
+          {t("creative_subtitle")}
         </p>
       </div>
 
@@ -91,7 +93,7 @@ export default function CreativeTask({ studentId }) {
               You & {buddy.name}
             </p>
             <p className="text-xs text-gray-400">
-              Class {buddy.class} &middot; Buddy pair
+              {t("th_class")} {buddy.class} &middot; Buddy pair
             </p>
           </div>
           <Users size={16} className="text-gray-300 shrink-0" />
@@ -101,7 +103,7 @@ export default function CreativeTask({ studentId }) {
       {student && (
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-            <p className="text-[11px] text-gray-400 font-medium mb-1.5">Your interests</p>
+            <p className="text-[11px] text-gray-400 font-medium mb-1.5">{t("creative_your_interests")}</p>
             <div className="flex flex-wrap gap-1">
               {(student.interests || []).map((i) => (
                 <span key={i} className="px-2 py-0.5 text-xs bg-gray-50 text-gray-600 rounded-full">
@@ -128,7 +130,7 @@ export default function CreativeTask({ studentId }) {
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <h2 className="text-sm font-medium text-gray-900">
-            This week's activity
+            {t("creative_this_week")}
           </h2>
           <button
             onClick={loadNewTask}
@@ -136,7 +138,7 @@ export default function CreativeTask({ studentId }) {
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             <RefreshCw size={11} className={loadingTask ? "animate-spin" : ""} />
-            {loadingTask ? "Generating..." : "New task"}
+            {loadingTask ? t("profile_generating") : t("creative_new_task")}
           </button>
         </div>
 
@@ -164,7 +166,7 @@ export default function CreativeTask({ studentId }) {
               <div className="px-4 pb-3">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Package size={12} className="text-gray-400" />
-                  <p className="text-[11px] text-gray-400 font-medium">You'll need</p>
+                  <p className="text-[11px] text-gray-400 font-medium">{t("creative_youll_need")}</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {task.materials_needed.map((m, i) => (
@@ -178,7 +180,7 @@ export default function CreativeTask({ studentId }) {
 
             {task.bonus_challenge && (
               <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-                <p className="text-[11px] text-gray-400 font-medium mb-0.5">Bonus challenge</p>
+                <p className="text-[11px] text-gray-400 font-medium mb-0.5">{t("creative_bonus")}</p>
                 <p className="text-sm text-gray-600">{task.bonus_challenge}</p>
               </div>
             )}
@@ -189,17 +191,17 @@ export default function CreativeTask({ studentId }) {
               <Lightbulb size={20} className="text-gray-400" />
             </div>
             <p className="text-sm text-gray-500 mb-1">
-              Ready to get creative{buddy ? ` with ${buddy.name.split(" ")[0]}` : ""}?
+              {t("creative_ready")}{buddy ? ` with ${buddy.name.split(" ")[0]}` : ""}?
             </p>
             <p className="text-xs text-gray-400 mb-5">
-              We'll pick an activity based on both your interests
+              {t("creative_pick_activity")}
             </p>
             <button
               onClick={loadNewTask}
               disabled={loadingTask}
               className="px-5 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
             >
-              {loadingTask ? "Generating..." : "Get our task"}
+              {loadingTask ? t("profile_generating") : t("creative_get_task")}
             </button>
           </div>
         )}

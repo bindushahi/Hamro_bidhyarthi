@@ -37,3 +37,9 @@ export const getCreativeTask = (studentId) =>
   request(`/generate/creative-task/${studentId}`, { method: "POST" });
 export const getBuddy = (studentId) =>
   request(`/buddies/${studentId}`);
+
+export const getCrisisAlerts = () => request("/crisis-alerts");
+export const acknowledgeCrisisAlert = (alertId) =>
+  request(`/crisis-alerts/${alertId}/acknowledge`, { method: "POST" });
+
+export const pollDashboard = () => request("/dashboard/poll");

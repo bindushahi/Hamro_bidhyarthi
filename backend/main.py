@@ -3,7 +3,7 @@
 Run with: uvicorn main:app --reload
 """
 
-from datetime import date
+from datetime import date, datetime
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
@@ -34,6 +34,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# In-memory crisis alerts (resets on server restart)
+crisis_alerts: list[dict] = []
 
 
 @app.get("/api/students")
@@ -69,6 +72,13 @@ def list_checkins(student_id: str, days: int = 14):
     return get_checkins(student_id, days=days)
 
 
+CRISIS_KEYWORDS = [
+    "मर्न मन लाग्छ", "बाँच्न मन छैन", "आत्महत्या", "suicide",
+    "self harm", "self-harm", "kill myself", "don't want to live",
+    "end my life", "मर्छु", "जीवन सकाउने",
+]
+
+
 @app.post("/api/checkins")
 async def create_checkin(req: CheckinRequest):
     checkin = {
@@ -86,7 +96,39 @@ async def create_checkin(req: CheckinRequest):
     if req.note.strip():
         note_analysis = await call_ai("note_analysis", {"note": req.note})
 
-    return {"checkin": checkin, "note_analysis": note_analysis}
+    # crisis detection: keyword scan + very low mood
+    is_crisis = False
+    note_lower = req.note.lower()
+    for kw in CRISIS_KEYWORDS:
+        if kw.lower() in note_lower:
+            is_crisis = True
+            break
+
+    if req.mood == 1 and not is_crisis:
+        # check if this is consecutive low mood (3+)
+        recent = get_checkins(req.student_id, days=14)
+        if count_consecutive_low(recent) >= 3:
+            is_crisis = True
+
+    if note_analysis and note_analysis.get("requires_immediate_attention"):
+        is_crisis = True
+
+    if is_crisis:
+        student = get_student(req.student_id)
+        alert = {
+            "id": f"alert-{uuid4().hex[:8]}",
+            "student_id": req.student_id,
+            "student_name": student["name"] if student else req.student_id,
+            "student_class": student["class"] if student else "",
+            "trigger": "keyword_detected" if any(kw.lower() in note_lower for kw in CRISIS_KEYWORDS) else "pattern_detected",
+            "mood": req.mood,
+            "note_preview": req.note[:100] if req.note else "",
+            "timestamp": datetime.now().isoformat(),
+            "acknowledged": False,
+        }
+        crisis_alerts.append(alert)
+
+    return {"checkin": checkin, "note_analysis": note_analysis, "is_crisis": is_crisis}
 
 
 @app.get("/api/observations/{student_id}")
@@ -275,4 +317,75 @@ def class_trends(class_name: str):
         "student_count": len(students),
         "avg_mood": avg_mood,
         "total_checkins": len(class_checkins),
+    }
+
+
+@app.get("/api/class-trends")
+def all_class_trends():
+    """Aggregate mood and risk stats for every class."""
+    students = get_students()
+    all_checkins = get_all_checkins()
+    classes: dict[str, list[dict]] = {}
+    for s in students:
+        classes.setdefault(s["class"], []).append(s)
+
+    results = []
+    for class_name, class_students in sorted(classes.items()):
+        ids = {s["id"] for s in class_students}
+        cks = [c for c in all_checkins if c["student_id"] in ids]
+        avg_mood = round(sum(c["mood"] for c in cks) / len(cks), 2) if cks else None
+
+        risk_counts = {"low": 0, "moderate": 0, "high": 0, "crisis": 0}
+        for s in class_students:
+            risk = detect_risk_level(s["id"])
+            level = risk["risk_level"]
+            if level in risk_counts:
+                risk_counts[level] += 1
+
+        # daily mood averages for the class (last 14 days)
+        from collections import defaultdict
+        daily: dict[str, list[int]] = defaultdict(list)
+        for c in cks:
+            daily[c["date"]].append(c["mood"])
+        daily_avg = sorted(
+            [{"date": d, "avg_mood": round(sum(m) / len(m), 2)} for d, m in daily.items()],
+            key=lambda x: x["date"],
+        )[-14:]
+
+        results.append({
+            "class": class_name,
+            "student_count": len(class_students),
+            "avg_mood": avg_mood,
+            "total_checkins": len(cks),
+            "risk_counts": risk_counts,
+            "daily_avg": daily_avg,
+        })
+    return results
+
+
+@app.get("/api/crisis-alerts")
+def get_crisis_alerts():
+    """Return all unacknowledged crisis alerts."""
+    return [a for a in crisis_alerts if not a["acknowledged"]]
+
+
+@app.post("/api/crisis-alerts/{alert_id}/acknowledge")
+def acknowledge_alert(alert_id: str):
+    for a in crisis_alerts:
+        if a["id"] == alert_id:
+            a["acknowledged"] = True
+            return {"status": "acknowledged"}
+    raise HTTPException(404, "Alert not found")
+
+
+@app.get("/api/dashboard/poll")
+def dashboard_poll():
+    """Lightweight endpoint for polling — returns alert count and latest checkin timestamp."""
+    unack = [a for a in crisis_alerts if not a["acknowledged"]]
+    all_cks = get_all_checkins()
+    latest = all_cks[-1]["date"] if all_cks else None
+    return {
+        "crisis_count": len(unack),
+        "latest_checkin": latest,
+        "total_checkins": len(all_cks),
     }

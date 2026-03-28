@@ -1,20 +1,7 @@
 import { useState } from "react";
 import { submitCheckin } from "../api";
+import { useLanguage } from "../i18n";
 import { Check } from "lucide-react";
-
-const MOODS = [
-  { value: 1, label: "Struggling" },
-  { value: 2, label: "Not great" },
-  { value: 3, label: "Okay" },
-  { value: 4, label: "Good" },
-  { value: 5, label: "Great" },
-];
-
-const ENERGY = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-];
 
 export default function CheckIn({ studentId }) {
   const [step, setStep] = useState(0);
@@ -22,6 +9,21 @@ export default function CheckIn({ studentId }) {
   const [energy, setEnergy] = useState(null);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useLanguage();
+
+  const MOODS = [
+    { value: 1, labelKey: "mood_1" },
+    { value: 2, labelKey: "mood_2" },
+    { value: 3, labelKey: "mood_3" },
+    { value: 4, labelKey: "mood_4" },
+    { value: 5, labelKey: "mood_5" },
+  ];
+
+  const ENERGY = [
+    { value: "low", labelKey: "energy_low" },
+    { value: "medium", labelKey: "energy_medium" },
+    { value: "high", labelKey: "energy_high" },
+  ];
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -63,10 +65,10 @@ export default function CheckIn({ studentId }) {
       {step === 0 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-900 text-center mb-1">
-            How are you feeling today?
+            {t("checkin_mood_title")}
           </h2>
           <p className="text-sm text-gray-400 text-center mb-6">
-            There are no wrong answers
+            {t("checkin_mood_subtitle")}
           </p>
           <div className="space-y-1.5">
             {MOODS.map((m) => (
@@ -82,7 +84,7 @@ export default function CheckIn({ studentId }) {
                     : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                 }`}
               >
-                {m.label}
+                {t(m.labelKey)}
               </button>
             ))}
           </div>
@@ -92,10 +94,10 @@ export default function CheckIn({ studentId }) {
       {step === 1 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-900 text-center mb-1">
-            How is your energy?
+            {t("checkin_energy_title")}
           </h2>
           <p className="text-sm text-gray-400 text-center mb-6">
-            Think about how you feel right now
+            {t("checkin_energy_subtitle")}
           </p>
           <div className="space-y-1.5">
             {ENERGY.map((e) => (
@@ -111,7 +113,7 @@ export default function CheckIn({ studentId }) {
                     : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                 }`}
               >
-                {e.label}
+                {t(e.labelKey)}
               </button>
             ))}
           </div>
@@ -119,7 +121,7 @@ export default function CheckIn({ studentId }) {
             onClick={() => setStep(0)}
             className="mt-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
-            &larr; Back
+            &larr; {t("back")}
           </button>
         </div>
       )}
@@ -127,10 +129,10 @@ export default function CheckIn({ studentId }) {
       {step === 2 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-900 text-center mb-1">
-            Anything you want to share?
+            {t("checkin_note_title")}
           </h2>
           <p className="text-sm text-gray-400 text-center mb-6">
-            Completely optional — write in any language
+            {t("checkin_note_subtitle")}
           </p>
           <textarea
             value={note}
@@ -144,13 +146,13 @@ export default function CheckIn({ studentId }) {
             disabled={submitting}
             className="w-full mt-3 px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
           >
-            {submitting ? "Submitting..." : "Submit check-in"}
+            {submitting ? t("submitting") : t("checkin_submit")}
           </button>
           <button
             onClick={() => setStep(1)}
             className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
-            &larr; Back
+            &larr; {t("back")}
           </button>
         </div>
       )}
@@ -161,16 +163,16 @@ export default function CheckIn({ studentId }) {
             <Check size={22} strokeWidth={2} className="text-gray-600" />
           </div>
           <h2 className="text-lg font-semibold text-gray-900 mb-0.5">
-            Thanks for checking in
+            {t("checkin_thanks")}
           </h2>
           <p className="text-sm text-gray-400">
-            Your response has been recorded
+            {t("checkin_recorded")}
           </p>
           <button
             onClick={handleReset}
             className="mt-6 text-sm text-gray-400 hover:text-gray-600 transition-colors"
           >
-            Check in again
+            {t("checkin_again")}
           </button>
         </div>
       )}

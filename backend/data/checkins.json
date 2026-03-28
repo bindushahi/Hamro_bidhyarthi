@@ -982,5 +982,37 @@
     "mood": 1,
     "energy": "medium",
     "note": ""
+  },
+  {
+    "id": "c-7a09fb4e",
+    "student_id": "s1",
+    "date": "2026-03-28",
+    "mood": 1,
+    "energy": "low",
+    "note": "मर्न मन लाग्छ"
+  },
+  {
+    "id": "c-3ca9b4ba",
+    "student_id": "s1",
+    "date": "2026-03-28",
+    "mood": 1,
+    "energy": "medium",
+    "note": "hi this is test\n"
+  },
+  {
+    "id": "c-38e59a82",
+    "student_id": "s1",
+    "date": "2026-03-28",
+    "mood": 1,
+    "energy": "medium",
+    "note": ""
+  },
+  {
+    "id": "c-d49357c4",
+    "student_id": "s1",
+    "date": "2026-03-28",
+    "mood": 3,
+    "energy": "high",
+    "note": "no\n"
   }
 ]

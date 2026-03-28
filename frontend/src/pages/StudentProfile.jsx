@@ -8,6 +8,7 @@ import {
   analyzeRisk,
   getConversationStarters,
 } from "../api";
+import { useLanguage } from "../i18n";
 import {
   ArrowLeft,
   MessageCircle,
@@ -35,12 +36,14 @@ const RISK_STYLE = {
 };
 
 const TAG_LABELS = {
-  grade_drop: "Grade drop",
-  distracted: "Distracted",
-  withdrawn: "Withdrawn",
-  absent: "Absent",
-  aggressive: "Aggressive",
-  tearful: "Tearful",
+  grade_drop: "tag_grade_drop",
+  distracted: "tag_distracted",
+  withdrawn: "tag_withdrawn",
+  absent: "tag_absent",
+  aggressive: "tag_aggressive",
+  tearful: "tag_tearful",
+  isolated: "tag_isolated",
+  disruptive: "tag_disruptive",
 };
 
 export default function StudentProfile() {
@@ -53,6 +56,7 @@ export default function StudentProfile() {
   const [starters, setStarters] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [loadingStarters, setLoadingStarters] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     Promise.all([
@@ -97,7 +101,7 @@ export default function StudentProfile() {
   if (!student) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm text-gray-400">{t("loading")}</p>
       </div>
     );
   }
@@ -134,7 +138,7 @@ export default function StudentProfile() {
         className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6"
       >
         <ArrowLeft size={16} />
-        Back to dashboard
+        {t("profile_back")}
       </Link>
 
       <div className="flex items-start justify-between mb-8">
@@ -143,7 +147,7 @@ export default function StudentProfile() {
             {student.name}
           </h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            Class {student.class} &middot; Age {student.age}
+            {t("th_class")} {student.class} &middot; Age {student.age}
           </p>
         </div>
         <button
@@ -152,33 +156,33 @@ export default function StudentProfile() {
           className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
         >
           {loadingAI && <Loader2 size={14} className="animate-spin" />}
-          {loadingAI ? "Analyzing..." : "Run AI Analysis"}
+          {loadingAI ? t("profile_analyzing") : t("profile_run_ai")}
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-400 mb-1">Recent Avg. Mood</p>
+          <p className="text-xs text-gray-400 mb-1">{t("profile_avg_mood")}</p>
           <p className="text-2xl font-semibold text-gray-900">
             {avgRecent}
             <span className="text-gray-300 text-base font-normal"> / 5</span>
           </p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-400 mb-1">Trend</p>
+          <p className="text-xs text-gray-400 mb-1">{t("profile_trend")}</p>
           <div className="flex items-center gap-2">
             <TrendIcon size={20} className="text-gray-500" />
             <span className="text-sm text-gray-700">
               {TrendIcon === TrendingDown
-                ? "Declining"
+                ? t("trend_declining")
                 : TrendIcon === TrendingUp
-                  ? "Improving"
-                  : "Stable"}
+                  ? t("trend_improving")
+                  : t("trend_stable")}
             </span>
           </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-400 mb-1">Check-ins (14d)</p>
+          <p className="text-xs text-gray-400 mb-1">{t("profile_checkins_14d")}</p>
           <p className="text-2xl font-semibold text-gray-900">
             {checkins.length}
           </p>
@@ -188,7 +192,7 @@ export default function StudentProfile() {
       {chartData.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
           <h2 className="text-sm font-medium text-gray-900 mb-4">
-            Mood History
+            {t("profile_mood_history")}
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
@@ -231,7 +235,7 @@ export default function StudentProfile() {
       {analysis && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
           <h2 className="text-sm font-medium text-gray-900 mb-4">
-            AI Risk Assessment
+            {t("profile_ai_assessment")}
           </h2>
 
           {analysis.ai_assessment ? (
@@ -258,7 +262,7 @@ export default function StudentProfile() {
               {analysis.ai_assessment.primary_concerns?.length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-gray-400 mb-2">
-                    Concerns
+                    {t("profile_concerns")}
                   </p>
                   <ul className="space-y-1">
                     {analysis.ai_assessment.primary_concerns.map((c, i) => (
@@ -279,7 +283,7 @@ export default function StudentProfile() {
 
               <div className="pt-2 border-t border-gray-100">
                 <p className="text-xs font-medium text-gray-400 mb-1">
-                  Recommended Action
+                  {t("profile_recommended")}
                 </p>
                 <p className="text-sm text-gray-700">
                   {analysis.ai_assessment.recommended_action}
@@ -289,7 +293,7 @@ export default function StudentProfile() {
               {analysis.ai_assessment.reasoning && (
                 <div className="pt-2 border-t border-gray-100">
                   <p className="text-xs font-medium text-gray-400 mb-1">
-                    Reasoning
+                    {t("profile_reasoning")}
                   </p>
                   <p className="text-sm text-gray-500 leading-relaxed">
                     {analysis.ai_assessment.reasoning}
@@ -300,7 +304,7 @@ export default function StudentProfile() {
           ) : (
             <div className="space-y-3">
               <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                AI analysis unavailable — showing rule-based assessment
+                {t("profile_ai_unavailable")}
               </p>
               <div className="flex items-center gap-3">
                 <span
@@ -336,7 +340,7 @@ export default function StudentProfile() {
       <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-medium text-gray-900">
-            Conversation Starters
+            {t("profile_starters")}
           </h2>
           <button
             onClick={loadStarters}
@@ -344,7 +348,7 @@ export default function StudentProfile() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             <MessageCircle size={14} />
-            {loadingStarters ? "Generating..." : "Generate"}
+            {loadingStarters ? t("profile_generating") : t("profile_generate")}
           </button>
         </div>
         {starters?.starters ? (
@@ -361,15 +365,14 @@ export default function StudentProfile() {
           </div>
         ) : (
           <p className="text-sm text-gray-400">
-            Click Generate to get AI-powered conversation openers for this
-            student.
+            {t("profile_starters_hint")}
           </p>
         )}
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
         <h2 className="text-sm font-medium text-gray-900 mb-4">
-          Recent Check-ins
+          {t("profile_recent_checkins")}
         </h2>
         <div className="space-y-2">
           {checkins
@@ -405,7 +408,7 @@ export default function StudentProfile() {
       {observations.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
           <h2 className="text-sm font-medium text-gray-900 mb-4">
-            Teacher Observations
+            {t("profile_observations")}
           </h2>
           <div className="space-y-3">
             {observations.map((o) => (
@@ -417,12 +420,12 @@ export default function StudentProfile() {
                   <span className="text-xs text-gray-400">{o.date}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-1">
-                  {o.tags.map((t) => (
+                  {o.tags.map((tag) => (
                     <span
-                      key={t}
+                      key={tag}
                       className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full"
                     >
-                      {TAG_LABELS[t] || t}
+                      {t(TAG_LABELS[tag]) || tag}
                     </span>
                   ))}
                 </div>
@@ -438,7 +441,7 @@ export default function StudentProfile() {
       {interventions.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h2 className="text-sm font-medium text-gray-900 mb-4">
-            Interventions
+            {t("profile_interventions")}
           </h2>
           <div className="space-y-3">
             {interventions.map((i) => (
