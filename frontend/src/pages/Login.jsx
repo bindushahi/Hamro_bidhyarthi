@@ -100,13 +100,15 @@ export default function Login({ onSwitch }) {
     );
   }
 
+  if (showPortal) {
+    return <ConfessionBoard onClose={() => setShowPortal(false)} />;
+  }
+
   return (
-    <>
-      {showPortal && <ConfessionBoard onClose={() => setShowPortal(false)} />}
-      <div
-        className="min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
-        style={{ backgroundImage: "url('/LandingBg.png')" }}
-      >
+    <div
+      className="min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
+      style={{ backgroundImage: "url('/LandingBg.png')" }}
+    >
         <div className="w-full max-w-sm bg-white/30 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-semibold text-black tracking-tight">हाम्रो विद्यार्थी</h1>
@@ -157,6 +159,5 @@ export default function Login({ onSwitch }) {
           </p>
         </div>
       </div>
-    </>
   );
 }
