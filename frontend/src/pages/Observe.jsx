@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getStudents, submitObservation } from "../api";
 import { useLanguage } from "../i18n";
 import { useAuth } from "../contexts/AuthContext";
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 
 const TAGS = [
   { id: "grade_drop", labelKey: "tag_grade_drop" },
@@ -63,65 +63,69 @@ export default function Observe() {
 
   if (submitted) {
     return (
-      <div className="max-w-md mx-auto pt-16 text-center">
-        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-          <Check size={24} strokeWidth={2} className="text-gray-600" />
+      <div className="min-h-screen w-full flex flex-col items-center justify-start py-20 px-4 overflow-y-auto bg-white/10">
+        {/* Glass card */}
+        <div className="relative w-full max-w-md p-8 bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 text-center animate-fadeIn">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
+            <Check size={28} strokeWidth={2} className="text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">
+            {t("obs_recorded") || "Observation recorded!"}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {t("obs_thanks") || "Thank you for submitting your observation."}
+          </p>
+          <button
+            onClick={handleReset}
+            className="px-6 py-3 font-medium text-white rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+          >
+            {t("obs_another") || "Record another observation"}
+          </button>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">
-          {t("obs_recorded")}
-        </h2>
-        <p className="text-sm text-gray-400">
-          {t("obs_thanks")}
-        </p>
-        <button
-          onClick={handleReset}
-          className="mt-8 px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          {t("obs_another")}
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">
-          {t("obs_title")}
-        </h1>
-        <p className="text-sm text-gray-400 mt-1">
-          {t("obs_subtitle")}
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {t("obs_student_label")}
-          </label>
-          <div className="relative">
-            <select
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              className="w-full appearance-none px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-gray-400 bg-white"
-            >
-              <option value="">{t("obs_select_student")}</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — {t("th_class")} {s.class}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-          </div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-start py-16 px-4 overflow-y-auto bg-white/10">
+      {/* Glass card */}
+      <form
+        onSubmit={handleSubmit}
+        className="relative z-10 w-full max-w-lg p-8 bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 space-y-6 animate-slideUp"
+      >
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t("obs_title") || "Student Observation"}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {t("obs_subtitle") || "Record what you noticed about a student today"}
+          </p>
         </div>
 
+        {/* Student Selector */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("obs_student_label") || "Student"}
+          </label>
+          <select
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-purple-400 hover:shadow-md transition-all bg-white"
+          >
+            <option value="">{t("obs_select_student") || "Select a student"}</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} — {t("th_class")} {s.class}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Tags */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t("obs_what_noticed")}
+            {t("obs_what_noticed") || "What did you notice?"}
           </label>
           <div className="flex flex-wrap gap-2">
             {TAGS.map((tag) => (
@@ -129,10 +133,10 @@ export default function Observe() {
                 key={tag.id}
                 type="button"
                 onClick={() => toggleTag(tag.id)}
-                className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                className={`px-3 py-1.5 rounded-full text-sm transition-all transform hover:-translate-y-0.5 ${
                   selectedTags.includes(tag.id)
-                    ? "bg-gray-900 text-white"
-                    : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg"
+                    : "bg-white border border-gray-300 text-gray-600 hover:border-gray-400 hover:shadow-sm"
                 }`}
               >
                 {t(tag.labelKey)}
@@ -141,26 +145,30 @@ export default function Observe() {
           </div>
         </div>
 
+        {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {t("obs_notes_label")}
-            <span className="text-gray-400 font-normal"> {t("obs_notes_optional")}</span>
+            {t("obs_notes_label") || "Notes"}{" "}
+            <span className="text-gray-400 font-normal">
+              {t("obs_notes_optional") || "(optional)"}
+            </span>
           </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
-            placeholder={t("obs_notes_placeholder")}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:border-gray-400 resize-none"
+            placeholder={t("obs_notes_placeholder") || "Any additional comments..."}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-200 resize-none hover:shadow-md transition-all"
           />
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={!studentId || selectedTags.length === 0 || submitting}
-          className="w-full px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
-          {submitting ? t("submitting") : t("obs_submit")}
+          {submitting ? t("submitting") || "Submitting..." : t("obs_submit") || "Submit Observation"}
         </button>
       </form>
     </div>

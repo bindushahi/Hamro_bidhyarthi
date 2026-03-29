@@ -52,10 +52,10 @@ export default function Login({ onSwitch }) {
       >
         <div className="w-full max-w-sm bg-white/30 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-white tracking-tight">
+            <h1 className="text-2xl font-semibold text-black tracking-tight">
               Enter OTP
             </h1>
-            <p className="text-sm text-white/80 mt-1">
+            <p className="text-sm text-black/80 mt-1">
               {sentVia === "sms"
                 ? "A 6-digit code has been sent to your phone"
                 : "A 6-digit code has been generated for you"}
@@ -87,7 +87,7 @@ export default function Login({ onSwitch }) {
                 onChange={(e) => setOtp(e.target.value)}
                 maxLength={6}
                 autoFocus
-                className="w-full px-3 py-3 border border-white/40 rounded-lg text-center text-lg font-mono tracking-widest focus:outline-none focus:border-white/80 bg-white/10 text-white placeholder-white/70"
+                className="w-full px-3 py-3 border border-white/40 rounded-lg text-center text-lg font-mono tracking-widest focus:outline-none focus:border-black bg-black/10 text-black placeholder-black/70"
                 placeholder="000000"
               />
             </div>
@@ -99,7 +99,7 @@ export default function Login({ onSwitch }) {
             <button
               type="submit"
               disabled={loading || otp.length < 6}
-              className="w-full py-2.5 bg-white/20 text-white text-sm font-medium rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+              className="w-full py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors"
             >
               {loading ? "Verifying..." : "Verify"}
             </button>
@@ -114,7 +114,7 @@ export default function Login({ onSwitch }) {
                 setSentVia(null);
                 setError("");
               }}
-              className="text-white font-medium hover:underline"
+              className="text-black font-medium hover:underline"
             >
               Back to sign in
             </button>

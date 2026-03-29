@@ -60,94 +60,95 @@ export default function Layout({ role, userName, userEmail, onSignOut, onSwitchA
   }, [popoverOpen]);
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
-        <div className="px-4 pt-5 pb-3">
-          <h1 className="text-base font-semibold text-gray-900 tracking-tight">
+    <div className="flex min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white/50 backdrop-blur-xl border-r border-white/30 flex flex-col shadow-xl shadow-indigo-100/40">
+        {/* Logo / Role */}
+        <div className="px-6 pt-6 pb-4">
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight drop-shadow-sm">
             {t("app_title")}
           </h1>
-          <p className="text-[11px] text-gray-400 mt-0.5">
-            {t(ROLE_LABEL_KEY[role]) || role}
-          </p>
+          <p className="text-[12px] text-gray-500 mt-1">{t(ROLE_LABEL_KEY[role]) || role}</p>
         </div>
 
-        <nav className="flex-1 px-2.5 space-y-0.5">
+        {/* Navigation */}
+        <nav className="flex-1 px-4 space-y-2">
           {links.map(({ to, labelKey, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm ${
                   isActive
-                    ? "bg-gray-100 text-gray-900"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                    ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg hover:shadow-xl"
+                    : "text-gray-700 hover:bg-white/40 hover:backdrop-blur-md hover:shadow-sm"
                 }`
               }
             >
-              <Icon size={16} strokeWidth={1.8} />
+              <Icon size={18} strokeWidth={1.8} />
               {t(labelKey)}
             </NavLink>
           ))}
         </nav>
 
-        <div className="px-2.5 pb-1">
+        {/* Language switch */}
+        <div className="px-4 mt-6">
           <button
             onClick={() => setLang(lang === "en" ? "np" : "en")}
-            className="flex items-center gap-2.5 px-3 py-2 w-full rounded-lg text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 w-full rounded-xl text-sm text-gray-600 hover:bg-white/50 hover:backdrop-blur-md shadow-inner transition-all"
           >
             <Globe size={16} strokeWidth={1.8} />
-            {lang === "en" ? "\u0928\u0947\u092A\u093E\u0932\u0940" : "English"}
+            {lang === "en" ? "नेपाली" : "English"}
           </button>
         </div>
 
-        <div className="relative border-t border-gray-100 px-2.5 py-2.5" ref={popoverRef}>
+        {/* User popover */}
+        <div className="relative mt-auto px-4 pb-4" ref={popoverRef}>
           <button
             onClick={() => setPopoverOpen((v) => !v)}
-            className="flex items-center gap-2.5 w-full px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/50 hover:backdrop-blur-md shadow-inner transition-all"
           >
-            <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
-              <span className="text-[11px] font-semibold text-white leading-none">
-                {getInitials(userName)}
-              </span>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shrink-0 shadow-lg">
+              <span className="text-xs font-bold text-white">{getInitials(userName)}</span>
             </div>
             <div className="min-w-0 text-left">
-              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-              <p className="text-[11px] text-gray-400 leading-tight">
+              <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
+              <p className="text-[11px] text-gray-500 truncate">
                 {t(ROLE_LABEL_KEY[role]) || role}
               </p>
             </div>
           </button>
 
           {popoverOpen && (
-            <div className="absolute bottom-full left-2.5 right-2.5 mb-2 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
-              <div className="px-4 py-4 border-b border-gray-100">
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white/70 backdrop-blur-xl rounded-xl border border-white/30 shadow-2xl overflow-hidden z-50">
+              <div className="px-4 py-4 border-b border-white/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-inner">
                     <span className="text-sm font-semibold text-white">{getInitials(userName)}</span>
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
-                    <p className="text-xs text-gray-400 truncate">{userEmail}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-gray-100 text-gray-600 capitalize">
+                    <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-medium rounded-full bg-purple-50 text-purple-700 capitalize">
                       {t(ROLE_LABEL_KEY[role]) || role}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="p-1.5">
+              <div className="p-2.5 space-y-1">
                 <button
                   onClick={() => { setPopoverOpen(false); onSwitchAccount(); }}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-white/50 hover:backdrop-blur-md transition-all"
                 >
-                  <ArrowLeftRight size={15} strokeWidth={1.8} className="text-gray-400" />
+                  <ArrowLeftRight size={15} strokeWidth={1.8} />
                   {t("nav_switch_role") || "Switch account"}
                 </button>
                 <button
                   onClick={() => { setPopoverOpen(false); onSignOut(); }}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-all"
                 >
                   <LogOut size={15} strokeWidth={1.8} />
-                  {t("nav_sign_out") || "Sign out"}
+                  {t("Sign Out") || "Sign out"}
                 </button>
               </div>
             </div>
@@ -155,8 +156,9 @@ export default function Layout({ role, userName, userEmail, onSignOut, onSwitchA
         </div>
       </aside>
 
-      <main className="flex-1 bg-gray-50 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-6">
+      {/* Main content */}
+      <main className="flex-1 bg-white/90 backdrop-blur-sm overflow-y-auto transition-all">
+        <div className="max-w-6xl mx-auto px-6 py-6 rounded-xl shadow-lg bg-white/70">
           <Outlet />
         </div>
       </main>
