@@ -20,6 +20,8 @@ Frontend (React + Tailwind)  →  FastAPI Backend  →  SQLite (SQLAlchemy)
 
 **AI reasoning** handles: multi-signal risk fusion, Nepali free-text distress detection, conversation starter generation, personalized creative tasks, parent messages.
 
+**Confession Board**: An anonymous, safe space for students to share their thoughts, seek peer support, and interact through comments without revealing their identity.
+
 ## Quick Start
 
 ### Backend
@@ -70,7 +72,7 @@ All demo accounts receive OTP via SMS when Twilio is configured. Without Twilio,
 - **Admin** — Approve/reject new registrations, assign teachers to classes, manage school config
 - **Teacher** — Log observations, view dashboard scoped to their assigned class. Check-ins validated against class schedule
 - **Counselor** — School-wide dashboard with per-class comparison, risk distribution, aggregated metrics
-- **Student** — (No direct login) Check-ins are filed by teachers/counselors on behalf of students
+- **Student** — (No direct login for core features) Check-ins are filed by teachers/counselors on behalf of students, but they can securely interact with the anonymous Confession Board.
 
 ## Database Schema
 
@@ -86,6 +88,9 @@ All demo accounts receive OTP via SMS when Twilio is configured. Without Twilio,
 | `interventions`  | Counselor actions                                |
 | `buddies`        | Peer buddy pairs                                 |
 | `class_schedule` | Per-class timetable for time-gated check-ins     |
+| `confession_posts`| Anonymous student confessions/posts             |
+| `comments`       | Comments on confession posts                     |
+| `post_likes`     | Tracks likes on confession posts                 |
 
 ## API Documentation
 
@@ -93,7 +98,7 @@ With the backend running, visit http://localhost:8000/docs
 
 ## Tech Stack
 
-- **Frontend**: React 19, React Router, Tailwind CSS, Recharts, Lucide icons
+- **Frontend**: React 19, React Router, Tailwind CSS, Shadcn UI / Radix primitives, Recharts, Lucide icons
 - **Backend**: FastAPI, SQLAlchemy, Pydantic, httpx
 - **Auth**: JWT (python-jose) + bcrypt (passlib) + Twilio Verify (SMS OTP)
 - **Database**: SQLite (file-based, zero config)
