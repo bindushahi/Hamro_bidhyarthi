@@ -9,6 +9,15 @@ load_dotenv()
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+
+# --- BCRYPT HOTFIX FOR PASSLIB ---
+import bcrypt
+if not hasattr(bcrypt, "__about__"):
+    class _MockAbout:
+        __version__ = bcrypt.__version__
+    bcrypt.__about__ = _MockAbout()
+# ---------------------------------
+
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
