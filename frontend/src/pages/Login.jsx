@@ -33,6 +33,7 @@ export default function Login({ onSwitch }) {
 
   async function handleOtp(e) {
     e.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
     try {

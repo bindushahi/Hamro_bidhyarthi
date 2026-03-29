@@ -125,7 +125,7 @@ def verify_login_otp(req: VerifyOtpRequest, db: Session = Depends(get_db)):
     if not check_otp(
         user.id, req.otp, phone_number=user.phone_number or "", purpose="login"
     ):
-        raise HTTPException(401, "Invalid or expired OTP")
+        raise HTTPException(400, "Invalid or expired OTP")  # ← was 401
 
     token = create_token(user.id, user.role, elevated=False)
 
