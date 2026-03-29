@@ -29,10 +29,10 @@ import {
 } from "recharts";
 
 const RISK_STYLE = {
-  low: "bg-emerald-50 text-emerald-700",
-  moderate: "bg-amber-50 text-amber-700",
-  high: "bg-red-50 text-red-700",
-  crisis: "bg-red-100 text-red-800",
+  low: "bg-emerald-100 text-emerald-800",
+  moderate: "bg-amber-100 text-amber-800",
+  high: "bg-red-100 text-red-800",
+  crisis: "bg-red-200 text-red-900",
 };
 
 const TAG_LABELS = {
@@ -45,6 +45,26 @@ const TAG_LABELS = {
   isolated: "tag_isolated",
   disruptive: "tag_disruptive",
 };
+
+// Simple Accordion component
+function Accordion({ title, children, button }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-white shadow-md rounded-xl overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-5 py-3 text-left text-gray-900 font-medium hover:bg-gray-50 transition"
+      >
+        <span className="flex items-center gap-2">
+          {button && button}
+          {title}
+        </span>
+        <span className="text-gray-400">{open ? "−" : "+"}</span>
+      </button>
+      {open && <div className="px-5 py-3 border-t border-gray-100">{children}</div>}
+    </div>
+  );
+}
 
 export default function StudentProfile() {
   const { id } = useParams();
@@ -132,341 +152,182 @@ export default function StudentProfile() {
   const TrendIcon = trendIcon;
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Back Link */}
       <Link
         to="/dashboard"
-        className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6"
+        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft size={16} />
         {t("profile_back")}
       </Link>
 
-      <div className="flex items-start justify-between mb-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">
-            {student.name}
-          </h1>
-          <p className="text-sm text-gray-400 mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{student.name}</h1>
+          <p className="text-sm text-gray-500 mt-1">
             {t("th_class")} {student.class} &middot; Age {student.age}
           </p>
         </div>
         <button
           onClick={runAnalysis}
           disabled={loadingAI}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 transition-all"
         >
-          {loadingAI && <Loader2 size={14} className="animate-spin" />}
+          {loadingAI && <Loader2 size={16} className="animate-spin" />}
           {loadingAI ? t("profile_analyzing") : t("profile_run_ai")}
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-400 mb-1">{t("profile_avg_mood")}</p>
-          <p className="text-2xl font-semibold text-gray-900">
-            {avgRecent}
-            <span className="text-gray-300 text-base font-normal"> / 5</span>
-          </p>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-400 mb-1">{t("profile_trend")}</p>
-          <div className="flex items-center gap-2">
-            <TrendIcon size={20} className="text-gray-500" />
-            <span className="text-sm text-gray-700">
-              {TrendIcon === TrendingDown
-                ? t("trend_declining")
-                : TrendIcon === TrendingUp
-                  ? t("trend_improving")
-                  : t("trend_stable")}
-            </span>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sticky top-6 z-10 bg-gray-50 p-2 sm:p-0">
+        {[
+          { label: t("profile_avg_mood"), value: avgRecent, unit: "/5" },
+          { label: t("profile_trend"), value: TrendIcon === Minus ? t("trend_stable") : TrendIcon === TrendingUp ? t("trend_improving") : t("trend_declining"), icon: TrendIcon },
+          { label: t("profile_checkins_14d"), value: checkins.length },
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            className="bg-white shadow-md rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:shadow-lg transition-shadow"
+          >
+            <p className="text-xs text-gray-400">{item.label}</p>
+            <div className="flex items-center gap-2">
+              {item.icon && <item.icon size={20} className="text-gray-500" />}
+              <span className="text-xl font-semibold text-gray-900">
+                {item.value} {item.unit && <span className="text-gray-400 text-sm">{item.unit}</span>}
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-400 mb-1">{t("profile_checkins_14d")}</p>
-          <p className="text-2xl font-semibold text-gray-900">
-            {checkins.length}
-          </p>
-        </div>
+        ))}
       </div>
 
-      {chartData.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">
-            {t("profile_mood_history")}
-          </h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                axisLine={{ stroke: "#E5E7EB" }}
-                tickLine={false}
-              />
-              <YAxis
-                domain={[1, 5]}
-                ticks={[1, 2, 3, 4, 5]}
-                tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                axisLine={{ stroke: "#E5E7EB" }}
-                tickLine={false}
-                width={30}
-              />
-              <Tooltip
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: 8,
-                  border: "1px solid #E5E7EB",
-                  boxShadow: "none",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="mood"
-                stroke="#111827"
-                strokeWidth={2}
-                dot={{ fill: "#111827", r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+      {/* Accordions */}
+      <div className="space-y-4">
+        {/* Mood History */}
+        {chartData.length > 0 && (
+          <Accordion title={t("profile_mood_history")}>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={{ stroke: "#E5E7EB" }} />
+                <YAxis domain={[1, 5]} ticks={[1,2,3,4,5]} tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={{ stroke: "#E5E7EB" }} width={35} />
+                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #E5E7EB" }} />
+                <Line type="monotone" dataKey="mood" stroke="#4F46E5" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Accordion>
+        )}
 
-      {analysis && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">
-            {t("profile_ai_assessment")}
-          </h2>
-
-          {analysis.ai_assessment ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                    RISK_STYLE[analysis.ai_assessment.risk_level] ||
-                    "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {analysis.ai_assessment.risk_level} risk
-                </span>
-                <span className="text-xs text-gray-400">
-                  Confidence:{" "}
-                  {Math.round(analysis.ai_assessment.confidence * 100)}%
-                </span>
-              </div>
-
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {analysis.ai_assessment.signal_summary}
-              </p>
-
-              {analysis.ai_assessment.primary_concerns?.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-gray-400 mb-2">
-                    {t("profile_concerns")}
-                  </p>
+        {/* AI Assessment */}
+        {analysis && (
+          <Accordion title={t("profile_ai_assessment")}>
+            {analysis.ai_assessment ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full font-medium text-xs capitalize ${RISK_STYLE[analysis.ai_assessment.risk_level]}`}>
+                    {analysis.ai_assessment.risk_level} risk
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Confidence: {Math.round(analysis.ai_assessment.confidence * 100)}%
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700">{analysis.ai_assessment.signal_summary}</p>
+                {analysis.ai_assessment.primary_concerns?.length > 0 && (
                   <ul className="space-y-1">
                     {analysis.ai_assessment.primary_concerns.map((c, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-2 text-sm text-gray-600"
-                      >
-                        <AlertTriangle
-                          size={14}
-                          className="text-gray-300 mt-0.5 shrink-0"
-                        />
+                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                        <AlertTriangle size={14} className="text-gray-300" />
                         {c}
                       </li>
                     ))}
                   </ul>
-                </div>
-              )}
-
-              <div className="pt-2 border-t border-gray-100">
-                <p className="text-xs font-medium text-gray-400 mb-1">
-                  {t("profile_recommended")}
-                </p>
-                <p className="text-sm text-gray-700">
-                  {analysis.ai_assessment.recommended_action}
-                </p>
-              </div>
-
-              {analysis.ai_assessment.reasoning && (
-                <div className="pt-2 border-t border-gray-100">
-                  <p className="text-xs font-medium text-gray-400 mb-1">
-                    {t("profile_reasoning")}
-                  </p>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    {analysis.ai_assessment.reasoning}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                {t("profile_ai_unavailable")}
-              </p>
-              <div className="flex items-center gap-3">
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                    RISK_STYLE[analysis.rule_based?.risk_level] ||
-                    "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {analysis.rule_based?.risk_level} risk
-                </span>
-              </div>
-              {analysis.rule_based?.concerns?.length > 0 && (
-                <ul className="space-y-1">
-                  {analysis.rule_based.concerns.map((c, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-gray-600"
-                    >
-                      <AlertTriangle
-                        size={14}
-                        className="text-gray-300 mt-0.5 shrink-0"
-                      />
-                      {c}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-medium text-gray-900">
-            {t("profile_starters")}
-          </h2>
-          <button
-            onClick={loadStarters}
-            disabled={loadingStarters}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            <MessageCircle size={14} />
-            {loadingStarters ? t("profile_generating") : t("profile_generate")}
-          </button>
-        </div>
-        {starters?.starters ? (
-          <div className="space-y-3">
-            {starters.starters.map((s, i) => (
-              <div
-                key={i}
-                className="p-3 bg-gray-50 rounded-lg"
-              >
-                <p className="text-sm text-gray-900">{s.nepali}</p>
-                <p className="text-xs text-gray-500 mt-1">{s.english}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-400">
-            {t("profile_starters_hint")}
-          </p>
-        )}
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
-        <h2 className="text-sm font-medium text-gray-900 mb-4">
-          {t("profile_recent_checkins")}
-        </h2>
-        <div className="space-y-2">
-          {checkins
-            .slice()
-            .reverse()
-            .slice(0, 10)
-            .map((c) => (
-              <div
-                key={c.id}
-                className="flex items-start justify-between py-2 border-b border-gray-50 last:border-0"
-              >
-                <div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-700">
-                      Mood: {c.mood}/5
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      Energy: {c.energy}
-                    </span>
-                  </div>
-                  {c.note && (
-                    <p className="text-sm text-gray-500 mt-1">{c.note}</p>
-                  )}
-                </div>
-                <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                  {c.date}
-                </span>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {observations.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5 mb-8">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">
-            {t("profile_observations")}
-          </h2>
-          <div className="space-y-3">
-            {observations.map((o) => (
-              <div key={o.id} className="py-2 border-b border-gray-50 last:border-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-gray-700">
-                    {o.teacher}
-                  </span>
-                  <span className="text-xs text-gray-400">{o.date}</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-1">
-                  {o.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full"
-                    >
-                      {t(TAG_LABELS[tag]) || tag}
-                    </span>
-                  ))}
-                </div>
-                {o.note && (
-                  <p className="text-sm text-gray-500">{o.note}</p>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            ) : (
+              <p className="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">{t("profile_ai_unavailable")}</p>
+            )}
+          </Accordion>
+        )}
 
-      {interventions.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">
-            {t("profile_interventions")}
-          </h2>
-          <div className="space-y-3">
-            {interventions.map((i) => (
-              <div key={i.id} className="py-2 border-b border-gray-50 last:border-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-gray-700">
-                    {i.counselor}
-                  </span>
-                  <span className="text-xs text-gray-400">{i.date}</span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      i.status === "in_progress"
-                        ? "bg-blue-50 text-blue-600"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
-                    {i.status.replace("_", " ")}
-                  </span>
+        {/* Conversation Starters */}
+        <Accordion title={t("profile_starters")} button={<MessageCircle />}>
+          <div className="flex flex-wrap gap-3">
+            {starters?.starters ? (
+              starters.starters.map((s, i) => (
+                <div key={i} className="bg-indigo-50 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition">
+                  <p className="text-sm text-indigo-900">{s.nepali}</p>
+                  <p className="text-xs text-indigo-700 mt-1">{s.english}</p>
                 </div>
-                <p className="text-sm text-gray-500">{i.note}</p>
+              ))
+            ) : (
+              <p className="text-sm text-gray-400">{t("profile_starters_hint")}</p>
+            )}
+          </div>
+        </Accordion>
+
+        {/* Recent Check-ins */}
+        <Accordion title={t("profile_recent_checkins")}>
+          <div className="flex flex-col gap-3 max-h-80 overflow-y-auto">
+            {checkins.slice().reverse().slice(0, 10).map((c) => (
+              <div key={c.id} className="p-3 bg-gray-50 rounded-xl flex justify-between items-center hover:bg-gray-100 transition">
+                <div>
+                  <div className="flex gap-4 text-sm text-gray-700">
+                    <span>Mood: {c.mood}/5</span>
+                    <span className="text-xs text-gray-400">Energy: {c.energy}</span>
+                  </div>
+                  {c.note && <p className="text-sm text-gray-500 mt-1">{c.note}</p>}
+                </div>
+                <span className="text-xs text-gray-400 whitespace-nowrap">{c.date}</span>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </Accordion>
+
+        {/* Observations */}
+        {observations.length > 0 && (
+          <Accordion title={t("profile_observations")}>
+            <div className="flex flex-col gap-3">
+              {observations.map((o) => (
+                <div key={o.id} className="p-3 bg-gray-50 rounded-xl hover:shadow-sm transition">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700">{o.teacher}</span>
+                    <span className="text-xs text-gray-400">{o.date}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {o.tags.map((tag) => (
+                      <span key={tag} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">
+                        {t(TAG_LABELS[tag]) || tag}
+                      </span>
+                    ))}
+                  </div>
+                  {o.note && <p className="text-sm text-gray-500">{o.note}</p>}
+                </div>
+              ))}
+            </div>
+          </Accordion>
+        )}
+
+        {/* Interventions */}
+        {interventions.length > 0 && (
+          <Accordion title={t("profile_interventions")}>
+            <div className="flex flex-col gap-3">
+              {interventions.map((i) => (
+                <div key={i.id} className="p-3 bg-gray-50 rounded-xl hover:shadow-sm transition">
+                  <div className="flex items-center gap-3 mb-1 text-sm text-gray-700">
+                    <span>{i.counselor}</span>
+                    <span className="text-xs text-gray-400">{i.date}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${i.status === "in_progress" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"}`}>
+                      {i.status.replace("_", " ")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500">{i.note}</p>
+                </div>
+              ))}
+            </div>
+          </Accordion>
+        )}
+      </div>
     </div>
   );
 }
