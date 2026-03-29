@@ -151,7 +151,7 @@ export default function Login({ onSwitch }) {
               letterSpacing: "0.02em",
             }}
           >
-            🕯️ Whisper Board — speak freely
+            Whisper Board — speak freely
           </button>
 
           <p className="text-center text-sm text-black/70 mt-5">

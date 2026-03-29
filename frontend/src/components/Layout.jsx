@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   ClipboardCheck,
   Eye,
@@ -8,8 +8,10 @@ import {
   Globe,
   Shield,
   ArrowLeftRight,
+  Command,
 } from "lucide-react";
 import { useLanguage } from "../i18n";
+import PageTransition from "./PageTransition";
 
 const NAV = {
   teacher: [
@@ -48,7 +50,10 @@ export default function Layout({ role, userName, userEmail, onSignOut, onSwitchA
   const popoverRef = useRef(null);
   const links = NAV[role] || [];
   const { lang, setLang, t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // Close popover on outside click
   useEffect(() => {
     function handleClick(e) {
       if (popoverRef.current && !popoverRef.current.contains(e.target)) {
@@ -58,6 +63,36 @@ export default function Layout({ role, userName, userEmail, onSignOut, onSwitchA
     if (popoverOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [popoverOpen]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e) {
+      // Don't trigger if typing in an input
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) return;
+
+      // Escape = go back
+      if (e.key === "Escape") {
+        if (popoverOpen) {
+          setPopoverOpen(false);
+        } else if (location.pathname.startsWith("/students/")) {
+          navigate("/dashboard");
+        }
+        return;
+      }
+
+      // / = focus search (if on dashboard)
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey) {
+        const searchInput = document.querySelector("[data-search-input]");
+        if (searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        return;
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [popoverOpen, location.pathname, navigate]);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100">
@@ -142,14 +177,14 @@ export default function Layout({ role, userName, userEmail, onSignOut, onSwitchA
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-white/50 hover:backdrop-blur-md transition-all"
                 >
                   <ArrowLeftRight size={15} strokeWidth={1.8} />
-                  {t("nav_switch_role") || "Switch account"}
+                  {t("nav_switch_role")}
                 </button>
                 <button
                   onClick={() => { setPopoverOpen(false); onSignOut(); }}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-all"
                 >
                   <LogOut size={15} strokeWidth={1.8} />
-                  {t("Sign Out") || "Sign out"}
+                  {t("nav_sign_out")}
                 </button>
               </div>
             </div>
@@ -160,7 +195,9 @@ export default function Layout({ role, userName, userEmail, onSignOut, onSwitchA
       {/* Main content */}
       <main className="flex-1 bg-white/90 backdrop-blur-sm overflow-y-auto transition-all">
         <div className="max-w-6xl mx-auto px-6 py-6 rounded-xl shadow-lg bg-white/70">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </div>
       </main>
     </div>

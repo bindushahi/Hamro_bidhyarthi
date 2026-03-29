@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { requestElevate, verifyElevate } from "../api";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../i18n";
 import { Lock } from "lucide-react";
 
 export default function OtpGate({ children }) {
   const { elevated, elevate } = useAuth();
+  const { t } = useLanguage();
   const [otp, setOtp] = useState("");
   const [sentVia, setSentVia] = useState(null);
   const [demoOtp, setDemoOtp] = useState(null);
@@ -50,10 +52,10 @@ export default function OtpGate({ children }) {
           <Lock size={18} className="text-gray-400" />
         </div>
         <h2 className="text-base font-semibold text-gray-900 mb-1">
-          Verification required
+          {t("otp_verification_required")}
         </h2>
         <p className="text-sm text-gray-400 mb-5">
-          This section contains sensitive student data. Enter an OTP to continue.
+          {t("otp_sensitive_data")}
         </p>
 
         {!requested ? (
@@ -62,21 +64,19 @@ export default function OtpGate({ children }) {
             disabled={loading}
             className="px-5 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
           >
-            {loading ? "Sending..." : "Send OTP"}
+            {loading ? t("otp_sending") : t("otp_send")}
           </button>
         ) : (
           <form onSubmit={handleVerify} className="space-y-3">
             {sentVia === "sms" && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-left">
-                <p className="text-xs text-emerald-700">
-                  Check your phone for the SMS verification code
-                </p>
+                <p className="text-xs text-emerald-700">{t("auth_check_phone")}</p>
               </div>
             )}
             {demoOtp && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-left">
                 <p className="text-xs text-amber-700">
-                  Demo — OTP: <span className="font-mono font-bold">{demoOtp}</span>
+                  {t("otp_demo")} <span className="font-mono font-bold">{demoOtp}</span>
                 </p>
               </div>
             )}
@@ -94,7 +94,7 @@ export default function OtpGate({ children }) {
               disabled={loading || otp.length < 6}
               className="w-full py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Verifying..." : "Verify"}
+              {loading ? t("auth_verifying") : t("auth_verify")}
             </button>
           </form>
         )}

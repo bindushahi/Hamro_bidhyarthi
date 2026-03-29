@@ -59,7 +59,7 @@ Open http://localhost:5173 to sign in.
 
 | Role       | Email                     | Password     | Scope       |
 |------------|---------------------------|--------------|-------------|
-| Admin      | admin@hamro.edu.np        | admin123     | Full access |
+| Admin      |admin@hamro.edu.np         | admin123     | Full access |
 | Teacher    | teacher@hamro.edu.np      | teacher123   | Class 9B    |
 | Counselor  | counselor@hamro.edu.np    | counselor123 | All classes |
 
