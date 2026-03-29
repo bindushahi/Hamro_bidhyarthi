@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getStudents, submitObservation } from "../api";
 import { useLanguage } from "../i18n";
+import { useAuth } from "../contexts/AuthContext";
 import { Check, ChevronDown } from "lucide-react";
 
 const TAGS = [
@@ -15,9 +16,9 @@ const TAGS = [
 ];
 
 export default function Observe() {
+  const { user } = useAuth();
   const [students, setStudents] = useState([]);
   const [studentId, setStudentId] = useState("");
-  const [teacher, setTeacher] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [note, setNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -30,27 +31,24 @@ export default function Observe() {
 
   function toggleTag(tagId) {
     setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((t) => t !== tagId)
-        : [...prev, tagId]
+      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
     );
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!studentId || !teacher || selectedTags.length === 0) return;
-
+    if (!studentId || selectedTags.length === 0) return;
     setSubmitting(true);
     try {
       await submitObservation({
         student_id: studentId,
-        teacher,
+        teacher: user?.full_name || "",
         tags: selectedTags,
         note,
       });
       setSubmitted(true);
     } catch (err) {
-      console.error("Observation submit failed:", err);
+      console.error(err);
     } finally {
       setSubmitting(false);
     }
@@ -58,7 +56,6 @@ export default function Observe() {
 
   function handleReset() {
     setStudentId("");
-    setTeacher("");
     setSelectedTags([]);
     setNote("");
     setSubmitted(false);
@@ -97,20 +94,7 @@ export default function Observe() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {t("obs_teacher_label")}
-          </label>
-          <input
-            type="text"
-            value={teacher}
-            onChange={(e) => setTeacher(e.target.value)}
-            placeholder="e.g. Math, Homeroom, Science"
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:border-gray-400"
-          />
-        </div>
-
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             {t("obs_student_label")}
@@ -173,7 +157,7 @@ export default function Observe() {
 
         <button
           type="submit"
-          disabled={!studentId || !teacher || selectedTags.length === 0 || submitting}
+          disabled={!studentId || selectedTags.length === 0 || submitting}
           className="w-full px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? t("submitting") : t("obs_submit")}

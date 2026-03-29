@@ -3,3 +3,7 @@ uvicorn[standard]
 httpx
 pydantic
 python-dotenv
+sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
+twilio

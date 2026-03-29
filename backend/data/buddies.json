@@ -1,12 +1,302 @@
 [
-  { "student_id": "s1",  "buddy_id": "s3",  "assigned_date": "2026-03-01" },
-  { "student_id": "s3",  "buddy_id": "s1",  "assigned_date": "2026-03-01" },
-  { "student_id": "s6",  "buddy_id": "s9",  "assigned_date": "2026-03-01" },
-  { "student_id": "s9",  "buddy_id": "s6",  "assigned_date": "2026-03-01" },
-  { "student_id": "s2",  "buddy_id": "s4",  "assigned_date": "2026-03-01" },
-  { "student_id": "s4",  "buddy_id": "s2",  "assigned_date": "2026-03-01" },
-  { "student_id": "s5",  "buddy_id": "s8",  "assigned_date": "2026-03-01" },
-  { "student_id": "s8",  "buddy_id": "s5",  "assigned_date": "2026-03-01" },
-  { "student_id": "s10", "buddy_id": "s7",  "assigned_date": "2026-03-01" },
-  { "student_id": "s7",  "buddy_id": "s10", "assigned_date": "2026-03-01" }
+  {
+    "student_id": "s1",
+    "buddy_id": "s3",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s3",
+    "buddy_id": "s1",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s37",
+    "buddy_id": "s38",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s38",
+    "buddy_id": "s37",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s39",
+    "buddy_id": "s40",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s40",
+    "buddy_id": "s39",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s41",
+    "buddy_id": "s42",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s42",
+    "buddy_id": "s41",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s43",
+    "buddy_id": "s44",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s44",
+    "buddy_id": "s43",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s2",
+    "buddy_id": "s4",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s4",
+    "buddy_id": "s2",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s10",
+    "buddy_id": "s45",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s45",
+    "buddy_id": "s10",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s46",
+    "buddy_id": "s47",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s47",
+    "buddy_id": "s46",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s48",
+    "buddy_id": "s49",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s49",
+    "buddy_id": "s48",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s50",
+    "buddy_id": "s51",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s51",
+    "buddy_id": "s50",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s5",
+    "buddy_id": "s11",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s11",
+    "buddy_id": "s5",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s12",
+    "buddy_id": "s13",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s13",
+    "buddy_id": "s12",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s14",
+    "buddy_id": "s15",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s15",
+    "buddy_id": "s14",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s16",
+    "buddy_id": "s17",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s17",
+    "buddy_id": "s16",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s18",
+    "buddy_id": "s19",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s19",
+    "buddy_id": "s18",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s6",
+    "buddy_id": "s9",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s9",
+    "buddy_id": "s6",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s29",
+    "buddy_id": "s30",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s30",
+    "buddy_id": "s29",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s31",
+    "buddy_id": "s32",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s32",
+    "buddy_id": "s31",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s33",
+    "buddy_id": "s34",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s34",
+    "buddy_id": "s33",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s35",
+    "buddy_id": "s36",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s36",
+    "buddy_id": "s35",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s7",
+    "buddy_id": "s52",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s52",
+    "buddy_id": "s7",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s53",
+    "buddy_id": "s54",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s54",
+    "buddy_id": "s53",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s55",
+    "buddy_id": "s56",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s56",
+    "buddy_id": "s55",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s57",
+    "buddy_id": "s58",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s58",
+    "buddy_id": "s57",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s59",
+    "buddy_id": "s60",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s60",
+    "buddy_id": "s59",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s8",
+    "buddy_id": "s20",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s20",
+    "buddy_id": "s8",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s21",
+    "buddy_id": "s22",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s22",
+    "buddy_id": "s21",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s23",
+    "buddy_id": "s24",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s24",
+    "buddy_id": "s23",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s25",
+    "buddy_id": "s26",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s26",
+    "buddy_id": "s25",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s27",
+    "buddy_id": "s28",
+    "assigned_date": "2026-03-01"
+  },
+  {
+    "student_id": "s28",
+    "buddy_id": "s27",
+    "assigned_date": "2026-03-01"
+  }
 ]

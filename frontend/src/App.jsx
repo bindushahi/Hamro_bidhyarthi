@@ -1,52 +1,98 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
-import RoleSelect from "./pages/RoleSelect";
+import OtpGate from "./components/OtpGate";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import CheckIn from "./pages/CheckIn";
 import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/StudentProfile";
 import Observe from "./pages/Observe";
-import CreativeTask from "./pages/CreativeTask";
+import AdminPanel from "./pages/AdminPanel";
 
-export default function App() {
-  const [role, setRole] = useState(null);
-  const [studentId, setStudentId] = useState(null);
+function ProtectedObserve() {
+  return (
+    <OtpGate>
+      <Observe />
+    </OtpGate>
+  );
+}
 
-  if (!role) {
+function ProtectedDashboard() {
+  return (
+    <OtpGate>
+      <Dashboard />
+    </OtpGate>
+  );
+}
+
+function ProtectedStudentProfile() {
+  return (
+    <OtpGate>
+      <StudentProfile />
+    </OtpGate>
+  );
+}
+
+function AppRoutes() {
+  const { user, loading, logout } = useAuth();
+  const [authView, setAuthView] = useState("login");
+
+  if (loading) {
     return (
-      <RoleSelect
-        onSelect={(r, sid) => {
-          setRole(r);
-          if (sid) setStudentId(sid);
-        }}
-      />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-sm text-gray-400">Loading...</p>
+      </div>
     );
   }
 
-  const homeRoute =
-    role === "student"
-      ? "/checkin"
-      : role === "teacher"
-        ? "/observe"
-        : "/dashboard";
+  if (!user) {
+    if (authView === "register") {
+      return <Register onSwitch={() => setAuthView("login")} />;
+    }
+    return <Login onSwitch={() => setAuthView("register")} />;
+  }
+
+  const role = user.role;
+  const homeRoute = role === "admin" ? "/admin" : "/checkin";
+
+  function handleSwitchAccount() {
+    logout();
+    setAuthView("login");
+  }
 
   return (
     <BrowserRouter>
       <Routes>
         <Route
           element={
-            <Layout role={role} onRoleChange={() => { setRole(null); setStudentId(null); }} />
+            <Layout
+              role={role}
+              userName={user.full_name}
+              userEmail={user.email}
+              onSignOut={logout}
+              onSwitchAccount={handleSwitchAccount}
+            />
           }
         >
           <Route index element={<Navigate to={homeRoute} replace />} />
-          <Route path="/checkin" element={<CheckIn studentId={studentId} />} />
-          <Route path="/creative" element={<CreativeTask studentId={studentId} />} />
-          <Route path="/observe" element={<Observe />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/students/:id" element={<StudentProfile />} />
+          <Route path="/checkin" element={<CheckIn />} />
+          <Route path="/observe" element={<ProtectedObserve />} />
+          <Route path="/dashboard" element={<ProtectedDashboard />} />
+          <Route path="/students/:id" element={<ProtectedStudentProfile />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<Navigate to={homeRoute} replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
