@@ -30,7 +30,7 @@ from data import (
 from patterns import (
     detect_risk_level, compute_baseline_mood,
     compute_checkin_frequency, compute_mood_trend,
-    count_consecutive_low,
+    count_consecutive_low, compute_risk_score,
 )
 from ai import call_ai
 
@@ -266,6 +266,7 @@ def list_students(user: User = Depends(require_auth), db: Session = Depends(get_
     for s in all_students:
         checkins = get_checkins(s["id"], days=14)
         risk = detect_risk_level(s["id"])
+        score_data = compute_risk_score(s["id"])
         last_checkin = checkins[-1] if checkins else None
         result.append({
             **s,
@@ -274,6 +275,8 @@ def list_students(user: User = Depends(require_auth), db: Session = Depends(get_
             "last_checkin_date": last_checkin["date"] if last_checkin else None,
             "risk_level": risk["risk_level"],
             "concerns": risk["concerns"],
+            "risk_score": score_data["risk_score"],
+            "why_flagged": score_data["why_flagged"],
         })
     return result
 
@@ -712,3 +715,65 @@ def dashboard_poll():
         "latest_checkin": latest,
         "total_checkins": len(all_cks),
     }
+
+
+@app.get("/api/top-at-risk")
+def top_at_risk(limit: int = 10, user: User = Depends(require_auth)):
+    """Return the top N students sorted by risk score (highest first)."""
+    students = get_students()
+    scored = []
+    for s in students:
+        score_data = compute_risk_score(s["id"])
+        checkins = get_checkins(s["id"], days=14)
+        last = checkins[-1] if checkins else None
+        scored.append({
+            "id": s["id"],
+            "name": s["name"],
+            "class": s["class"],
+            "risk_score": score_data["risk_score"],
+            "why_flagged": score_data["why_flagged"],
+            "last_mood": last["mood"] if last else None,
+            "last_checkin_date": last["date"] if last else None,
+        })
+    scored.sort(key=lambda x: x["risk_score"], reverse=True)
+    return scored[:limit]
+
+
+@app.get("/api/alerts/history")
+def alert_history(user: User = Depends(require_auth)):
+    """Return all crisis alerts (both acknowledged and unacknowledged), newest first."""
+    return sorted(crisis_alerts, key=lambda a: a["timestamp"], reverse=True)
+
+
+@app.get("/api/export/students-csv")
+def export_students_csv(user: User = Depends(require_auth)):
+    """Export all students with risk data as CSV."""
+    import csv
+    import io
+    from fastapi.responses import StreamingResponse
+
+    students = get_students()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Name", "Class", "Age", "Gender",
+        "Risk Score", "Why Flagged", "Risk Level",
+        "Last Mood", "Last Check-in Date",
+    ])
+    for s in students:
+        risk = detect_risk_level(s["id"])
+        score_data = compute_risk_score(s["id"])
+        checkins = get_checkins(s["id"], days=14)
+        last = checkins[-1] if checkins else None
+        writer.writerow([
+            s["id"], s["name"], s["class"], s.get("age", ""), s.get("gender", ""),
+            score_data["risk_score"], score_data["why_flagged"], risk["risk_level"],
+            last["mood"] if last else "", last["date"] if last else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=students_report.csv"},
+    )

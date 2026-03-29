@@ -121,3 +121,74 @@ def detect_risk_level(student_id: str) -> dict:
         "recent_observations": recent_obs_count,
         "concerns": concerns,
     }
+
+
+def compute_risk_score(student_id: str) -> dict:
+    """
+    Compute a 0-100 risk score with weighted signals.
+    Higher = more at risk. Also returns a human-readable 'why_flagged' explanation.
+    """
+    checkins = get_checkins(student_id, days=14)
+    observations = get_observations(student_id)
+    baseline = compute_baseline_mood(student_id)
+    frequency = compute_checkin_frequency(student_id)
+    consecutive_low = count_consecutive_low(checkins)
+    trend = compute_mood_trend(checkins)
+
+    recent_obs_count = len([
+        o for o in observations
+        if o["date"] > str(date.today() - timedelta(days=14))
+    ])
+
+    current_avg = 0.0
+    if checkins:
+        last_3 = checkins[-3:]
+        current_avg = sum(c["mood"] for c in last_3) / len(last_3)
+
+    baseline_deviation = baseline - current_avg if baseline else 0
+
+    freq_drop = (
+        frequency["previous_7_days"] >= 5
+        and frequency["last_7_days"] <= 2
+    )
+
+    # --- weighted scoring (each component 0-100, then combined) ---
+    score = 0.0
+    reasons = []
+
+    # 1. Consecutive low mood days (weight: 30)
+    consec_score = min(consecutive_low / 5, 1.0) * 30
+    score += consec_score
+    if consecutive_low >= 2:
+        reasons.append(f"{consecutive_low} consecutive low-mood days")
+
+    # 2. Baseline deviation (weight: 25)
+    dev_score = min(max(baseline_deviation, 0) / 3, 1.0) * 25
+    score += dev_score
+    if baseline_deviation > 1:
+        reasons.append(f"Mood {baseline_deviation:.1f} pts below baseline")
+
+    # 3. Recent observations (weight: 20)
+    obs_score = min(recent_obs_count / 3, 1.0) * 20
+    score += obs_score
+    if recent_obs_count > 0:
+        reasons.append(f"{recent_obs_count} teacher observation(s) in 2 weeks")
+
+    # 4. Frequency drop (weight: 15)
+    if freq_drop:
+        score += 15
+        reasons.append("Significant drop in check-in frequency")
+
+    # 5. Mood trend (weight: 10)
+    if trend == "declining":
+        score += 10
+        reasons.append("Downward mood trend")
+
+    score = min(round(score), 100)
+
+    why_flagged = "; ".join(reasons) if reasons else "No concerns detected"
+
+    return {
+        "risk_score": score,
+        "why_flagged": why_flagged,
+    }
