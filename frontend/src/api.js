@@ -81,3 +81,7 @@ export const pollDashboard = () => request("/dashboard/poll");
 
 export const getSchoolAnalytics = () => request("/analytics/school");
 export const getClassAnalytics = () => request("/analytics/by-class");
+
+export const getTopAtRisk = (limit = 10) => request(`/top-at-risk?limit=${limit}`);
+export const getAlertHistory = () => request("/alerts/history");
+export const getExportUrl = () => `${BASE}/export/students-csv`;

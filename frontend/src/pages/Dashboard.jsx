@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { getStudents, getWatchlist, getCrisisAlerts, acknowledgeCrisisAlert, pollDashboard, getSchoolAnalytics, getClassAnalytics } from "../api";
+import { getStudents, getWatchlist, getCrisisAlerts, acknowledgeCrisisAlert, pollDashboard, getSchoolAnalytics, getClassAnalytics, getTopAtRisk, getAlertHistory, getExportUrl } from "../api";
 import { useLanguage } from "../i18n";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -15,6 +15,9 @@ import {
   X,
   Bell,
   BarChart3,
+  Download,
+  Clock,
+  Trophy,
 } from "lucide-react";
 
 const RISK_STYLE = {
@@ -160,18 +163,23 @@ export default function Dashboard() {
   const [lastCheckinCount, setLastCheckinCount] = useState(null);
   const [schoolStats, setSchoolStats] = useState(null);
   const [classBreakdown, setClassBreakdown] = useState([]);
+  const [topAtRisk, setTopAtRisk] = useState([]);
+  const [alertHistory, setAlertHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
   const { t } = useLanguage();
 
   const loadData = useCallback(() => {
-    const promises = [getStudents(), getWatchlist(), getCrisisAlerts()];
+    const promises = [getStudents(), getWatchlist(), getCrisisAlerts(), getTopAtRisk(5), getAlertHistory()];
     if (isCounselor) {
       promises.push(getSchoolAnalytics(), getClassAnalytics());
     }
     return Promise.all(promises)
-      .then(([s, w, c, school, classes]) => {
+      .then(([s, w, c, topRisk, history, school, classes]) => {
         setStudents(s);
         setWatchlist(w);
         setCrisisAlerts(c);
+        setTopAtRisk(topRisk);
+        setAlertHistory(history);
         if (school) setSchoolStats(school);
         if (classes) setClassBreakdown(classes);
       })
@@ -264,6 +272,105 @@ export default function Dashboard() {
         <StatCard label={t("dash_high_risk")} value={stats.highRisk} icon={TrendingDown} />
         <StatCard label={t("dash_healthy")} value={stats.healthy} icon={ShieldCheck} />
       </div>
+
+      {topAtRisk.length > 0 && topAtRisk[0].risk_score > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+              <Trophy size={14} className="text-amber-500" />
+              {t("dash_top_risk") || "Top At-Risk Students"}
+            </h2>
+            <a
+              href={getExportUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Download size={12} />
+              {t("export_csv") || "Export CSV"}
+            </a>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">#</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_name")}</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_class")}</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_score") || "Score"}</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">Why Flagged</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {topAtRisk.filter(s => s.risk_score > 0).map((s, i) => (
+                  <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-gray-400 font-mono text-xs">{i + 1}</td>
+                    <td className="px-4 py-3">
+                      <Link to={`/students/${s.id}`} className="font-medium text-gray-900 hover:underline">
+                        {s.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{s.class}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              s.risk_score >= 60 ? "bg-red-500" : s.risk_score >= 30 ? "bg-amber-400" : "bg-emerald-400"
+                            }`}
+                            style={{ width: `${s.risk_score}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono font-medium text-gray-700">{s.risk_score}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{s.why_flagged}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {alertHistory.length > 0 && (
+        <div className="mb-8">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-900 mb-3 hover:text-gray-700"
+          >
+            <Clock size={14} className="text-gray-400" />
+            Alert History ({alertHistory.length})
+            <ChevronRight size={14} className={`text-gray-400 transition-transform ${showHistory ? "rotate-90" : ""}`} />
+          </button>
+          {showHistory && (
+            <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-50">
+              {alertHistory.map((a) => (
+                <div key={a.id} className="px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-900">
+                      <Link to={`/students/${a.student_id}`} className="font-medium hover:underline">
+                        {a.student_name}
+                      </Link>
+                      <span className="text-gray-400"> — {a.student_class}</span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {a.trigger === "keyword_detected" ? "Keyword" : "Pattern"} · Mood {a.mood}/5
+                      {a.note_preview && <span className="italic"> · "{a.note_preview}"</span>}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs text-gray-400">{new Date(a.timestamp).toLocaleDateString()}</p>
+                    <span className={`text-[10px] font-medium ${a.acknowledged ? "text-emerald-600" : "text-red-600"}`}>
+                      {a.acknowledged ? "Acknowledged" : "Active"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {isCounselor && classBreakdown.length > 0 && (
         <div className="mb-8">
@@ -365,6 +472,7 @@ export default function Dashboard() {
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_name")}</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_class")}</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_last_mood")}</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_score") || "Score"}</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_risk")}</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-400">{t("th_last_checkin")}</th>
                 <th></th>
@@ -383,6 +491,11 @@ export default function Dashboard() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{s.class}</td>
                   <td className="px-4 py-3 text-gray-700">{s.last_mood ?? "\u2014"} / 5</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-mono font-medium ${
+                      s.risk_score >= 60 ? "text-red-600" : s.risk_score >= 30 ? "text-amber-600" : "text-gray-400"
+                    }`}>{s.risk_score ?? "\u2014"}</span>
+                  </td>
                   <td className="px-4 py-3"><RiskBadge level={s.risk_level} /></td>
                   <td className="px-4 py-3 text-gray-400">{s.last_checkin_date || t("never")}</td>
                   <td className="px-4 py-3 text-right">
